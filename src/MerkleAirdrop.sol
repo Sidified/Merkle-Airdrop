@@ -18,12 +18,13 @@ contract MerkleAirdrop {
     bytes32 private immutable i_merkleRoot;
     IERC20 private immutable i_airdropToken;
     mapping(address => bool) private s_hasClaimed; // To prevent double claiming.
+
     //// EVENTS ////////
     event Claim(address indexed account, uint256 amount);
 
-    constructor(bytes32 merkleRoot, address airdropToken) {
+    constructor(bytes32 merkleRoot, IERC20 airdropToken) {
         i_merkleRoot = merkleRoot;
-        i_airdropToken = IERC20(airdropToken);
+        i_airdropToken = airdropToken;
     }
 
     function claim(address account, uint256 amount, bytes32[] calldata merkleProof) external {
@@ -38,5 +39,16 @@ contract MerkleAirdrop {
         s_hasClaimed[account] = true;
         emit Claim(account, amount);
         i_airdropToken.safeTransfer(account, amount);
+    }
+
+    //////////////////////////////////////
+    ////////// GETTER FUNCTIONS //////////
+    //////////////////////////////////////
+    function getMerkleRoot() external view returns (bytes32) {
+        return i_merkleRoot;
+    }
+
+    function getAirdropToken() external view returns (IERC20) {
+        return i_airdropToken;
     }
 }
