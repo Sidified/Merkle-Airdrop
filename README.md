@@ -2,7 +2,7 @@
 
 This repository contains my implementation of a **gas-efficient and secure token airdrop system** using **Merkle Trees and (upcoming) ECDSA signatures**.
 
-The goal of this project is to understand and build the same architecture used by real-world protocols (like Uniswap, Arbitrum) to distribute tokens at scale.
+The goal is to understand and build the same architecture used by real-world protocols (like Uniswap, Arbitrum) to distribute tokens at scale.
 
 ---
 
@@ -24,16 +24,46 @@ Airdropping tokens to thousands of users is expensive and inefficient if done na
 
 ## 🏗️ Current Implementation
 
-### 🥯 BagelToken.sol
+### 🥯 Smart Contracts
+
+#### BagelToken.sol
 - Minimal ERC20 token using OpenZeppelin
 - Owner-controlled minting
 
-### 🌳 MerkleAirdrop.sol
+#### MerkleAirdrop.sol
 - Merkle Proof verification using OpenZeppelin
-- Double-claim protection using mapping
+- Double-claim protection
 - Follows **CEI (Checks-Effects-Interactions)** pattern
 - Uses **SafeERC20** for secure transfers
 - Gas-optimized with `immutable` variables
+
+---
+
+### ⚙️ Off-chain Infrastructure (Foundry Scripts)
+
+#### GenerateInput.s.sol
+- Creates whitelist data (addresses + token amounts)
+- Outputs structured JSON
+
+#### MakeMerkle.s.sol
+- Generates Merkle Tree using `murky`
+- Outputs:
+  - Merkle Root
+  - Proofs for each user
+
+#### DeployMerkleAirdrop.s.sol
+- Deploys contracts
+- Mints tokens
+- Funds the airdrop contract
+
+---
+
+### 🧪 Testing
+
+- Unit tests using Foundry
+- Uses real Merkle proofs from generated JSON
+- `vm.prank()` to simulate user interactions
+- Validates successful token claims
 
 ---
 
@@ -41,9 +71,12 @@ Airdropping tokens to thousands of users is expensive and inefficient if done na
 
 - Merkle Trees & Proofs
 - Gas optimization (O(N) → O(log N))
+- Off-chain computation + on-chain verification
 - Double hashing for security
 - CEI pattern (reentrancy prevention)
 - Safe ERC20 interactions
+- Deployment scripting
+- Testing with real cryptographic data
 
 ---
 
@@ -54,11 +87,8 @@ This project is actively being built as part of my **Advanced Foundry / Smart Co
 ### 🔜 Upcoming Features:
 - ECDSA Signature verification
 - Gasless claims via relayers
-- Foundry scripts for:
-  - Merkle tree generation
-  - Deployment
-  - Interaction
-- Extensive testing
+- EIP-712 typed structured data
+- Signature validation inside `claim()`
 
 ---
 
@@ -69,7 +99,7 @@ I’m documenting this journey daily on X (Twitter), sharing:
 - What I build
 - Key insights
 
-This repo will evolve alongside those posts.
+This repo evolves alongside those posts.
 
 ---
 
@@ -78,12 +108,13 @@ This repo will evolve alongside those posts.
 - Solidity
 - Foundry
 - OpenZeppelin
+- Murky (Merkle Tree generation)
 
 ---
 
 ## 📌 Status
 
-🟡 In Progress — actively building and improving
+🟡 In Progress — transitioning from Merkle proofs → signature-based claims
 
 ---
 
