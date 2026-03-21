@@ -1,6 +1,6 @@
 # 🪂 Merkle Airdrop & Signatures (WIP)
 
-This repository contains my implementation of a **gas-efficient and secure token airdrop system** using **Merkle Trees and (upcoming) ECDSA signatures**.
+This repository contains my implementation of a **gas-efficient and secure token airdrop system** using **Merkle Trees and ECDSA signatures (gasless claims)**.
 
 The goal is to understand and build the same architecture used by real-world protocols (like Uniswap, Arbitrum) to distribute tokens at scale.
 
@@ -19,6 +19,7 @@ Airdropping tokens to thousands of users is expensive and inefficient if done na
 - Store only a **Merkle Root on-chain**
 - Users prove eligibility using **Merkle Proofs**
 - Verification cost becomes **O(log N)**
+- Users authorize claims via **signatures (gasless UX)**
 
 ---
 
@@ -31,11 +32,24 @@ Airdropping tokens to thousands of users is expensive and inefficient if done na
 - Owner-controlled minting
 
 #### MerkleAirdrop.sol
-- Merkle Proof verification using OpenZeppelin
+- Merkle Proof verification
 - Double-claim protection
-- Follows **CEI (Checks-Effects-Interactions)** pattern
-- Uses **SafeERC20** for secure transfers
-- Gas-optimized with `immutable` variables
+- CEI pattern (reentrancy-safe)
+- SafeERC20 transfers
+- Gas optimized with `immutable`
+
+### 🔐 Signature-Based Claims (NEW)
+
+- EIP-712 structured data signing
+- ECDSA signature verification (OpenZeppelin)
+- Prevents unauthorized claims
+- Enables **gasless airdrop via relayers**
+
+Flow:
+1. User signs message off-chain  
+2. Relayer submits transaction  
+3. Contract verifies signature + Merkle proof  
+4. Tokens are transferred  
 
 ---
 
@@ -43,27 +57,28 @@ Airdropping tokens to thousands of users is expensive and inefficient if done na
 
 #### GenerateInput.s.sol
 - Creates whitelist data (addresses + token amounts)
-- Outputs structured JSON
 
 #### MakeMerkle.s.sol
 - Generates Merkle Tree using `murky`
-- Outputs:
-  - Merkle Root
-  - Proofs for each user
+- Outputs root + proofs
 
 #### DeployMerkleAirdrop.s.sol
 - Deploys contracts
 - Mints tokens
-- Funds the airdrop contract
+- Funds airdrop contract
+
+#### Interact.s.sol (Relayer)
+- Simulates relayer submitting claims
+- Uses signature + proof
 
 ---
 
 ### 🧪 Testing
 
 - Unit tests using Foundry
-- Uses real Merkle proofs from generated JSON
-- `vm.prank()` to simulate user interactions
-- Validates successful token claims
+- Uses real Merkle proofs
+- `vm.prank()` for simulating users
+- Validates claim execution
 
 ---
 
@@ -72,23 +87,23 @@ Airdropping tokens to thousands of users is expensive and inefficient if done na
 - Merkle Trees & Proofs
 - Gas optimization (O(N) → O(log N))
 - Off-chain computation + on-chain verification
-- Double hashing for security
-- CEI pattern (reentrancy prevention)
+- ECDSA (v, r, s signatures)
+- EIP-712 structured data signing
+- Signature verification & replay protection
+- CEI pattern
 - Safe ERC20 interactions
 - Deployment scripting
-- Testing with real cryptographic data
+- Relayer-based execution
 
 ---
 
 ## ⚠️ Work In Progress
 
-This project is actively being built as part of my **Advanced Foundry / Smart Contract Security journey**.
-
-### 🔜 Upcoming Features:
-- ECDSA Signature verification
-- Gasless claims via relayers
-- EIP-712 typed structured data
-- Signature validation inside `claim()`
+### 🔜 Upcoming:
+- Signature splitting (v, r, s from raw signature)
+- Full relayer automation
+- Advanced testing for signatures
+- Potential frontend / integration
 
 ---
 
@@ -99,8 +114,6 @@ I’m documenting this journey daily on X (Twitter), sharing:
 - What I build
 - Key insights
 
-This repo evolves alongside those posts.
-
 ---
 
 ## 🛠️ Tech Stack
@@ -108,16 +121,16 @@ This repo evolves alongside those posts.
 - Solidity
 - Foundry
 - OpenZeppelin
-- Murky (Merkle Tree generation)
+- Murky
 
 ---
 
 ## 📌 Status
 
-🟡 In Progress — transitioning from Merkle proofs → signature-based claims
+🟡 In Progress — now implementing **gasless signature-based claims**
 
 ---
 
 ## 🤝 Feedback
 
-If you have suggestions or spot improvements, feel free to open an issue or reach out!
+Open to suggestions, improvements, and discussions!

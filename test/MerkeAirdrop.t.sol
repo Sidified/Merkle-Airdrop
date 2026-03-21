@@ -18,6 +18,7 @@ contract MerkleAirdropTest is ZkSyncChainChecker, Test {
     bytes32 proofTwo = 0xe5ebd1e1b5a5478a944ecab36a9a954ac3b6b8216875f6524caa7a1d87096576;
     bytes32[] public PROOF = [proofOne, proofTwo];
 
+    address public gasPayer;
     address user;
     uint256 userPrivKey;
 
@@ -30,16 +31,22 @@ contract MerkleAirdropTest is ZkSyncChainChecker, Test {
             token = new BagelToken();
             airdrop = new MerkleAirdrop(ROOT, IERC20(address(token)));
             token.mint(address(airdrop), AMOUNT_TO_SEND); // mint some tokens to the airdrop contract
-            token.transfer(address(airdrop), AMOUNT_TO_SEND); // transfer the tokens to the airdrop contract
+            // token.transfer(address(airdrop), AMOUNT_TO_SEND); // transfer the tokens to the airdrop contract
         }
         (user, userPrivKey) = makeAddrAndKey("user"); // make a user address and private key for testing
+        gasPayer = makeAddr("gasPayer");
+        vm.deal(gasPayer, 100 ether); // fund the gas payer
     }
 
     function test_userCanClaim() public {
         uint256 startingBalance = token.balanceOf(user);
+        bytes32 digest = airdrop.getMessageHash(user, AMOUNT_TO_CLAIM);
+        // sign a messge
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(userPrivKey, digest);
 
-        vm.prank(user);
-        airdrop.claim(user, AMOUNT_TO_CLAIM, PROOF);
+        // gasPayer calls the claim using the signed message from the user
+        vm.prank(gasPayer);
+        airdrop.claim(user, AMOUNT_TO_CLAIM, PROOF, v, r, s);
 
         uint256 endingBalance = token.balanceOf(user);
         console.log("User balance after claim:", endingBalance);
